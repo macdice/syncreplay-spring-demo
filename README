@@ -22,6 +22,11 @@ patched with this:
 
  https://www.postgresql.org/message-id/CAEepm%3D0YigNQczAF-%3Dx_SxT6cJv77Yb0EO%2BcAFnqRyVu4%2BbKFw%40mail.gmail.com
 
+The script accompanying the above patch may be useful to start replica
+servers.  A table must be created first:
+
+ CREATE TABLE key_value (key text PRIMARY KEY, value text NOT NULL);
+
 Here is some Python pseudo-code that shows a crude example of the sort of
 retry and rerouting behaviour that I think is needed:
 
