@@ -1,5 +1,5 @@
 This is a test Java/Spring application for experimenting with the proposed
-PostgreSQL feature "synchronous replay".  It is intented to show that the
+PostgreSQL feature "synchronous replay".  It is intended to show that the
 semantics provided can be used to good effect by a typical software
 development stack.
 
@@ -17,7 +17,14 @@ server.  GET requests should see the most recently PUT value for any key at
 all times (no replication lag), and failing replica database servers should
 have a limited impact on the primary server.
 
+This requires a cluster of PostgreSQL servers running the latest master code
+patched with synchronous_replay.patch from:
+
+ https://www.postgresql.org/message-id/CAEepm%3D0YigNQczAF-%3Dx_SxT6cJv77Yb0EO%2BcAFnqRyVu4%2BbKFw%40mail.gmail.com
+
 Here is some Python pseudo-code that shows a crude example of the sort of
 retry and rerouting behaviour that I think is needed:
 
  https://github.com/macdice/py-pgsync/blob/master/DemoSyncPool.py
+
+This is work in progress, pull requests welcome!
