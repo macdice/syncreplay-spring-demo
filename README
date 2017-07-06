@@ -15,7 +15,7 @@ The goal is that GET requests should be sent to randomly chosen read-only
 replica database servers, PUT requests should go to the primary database
 server.  GET requests should see the most recently PUT value for any key at
 all times (no replication lag), and failing replica database servers should
-have a limited impact on the primary server.
+have a limited impact on the primary server and application.
 
 This requires a set of PostgreSQL servers running the latest master code
 patched with this:
