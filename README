@@ -1,0 +1,23 @@
+This is a test Java/Spring application for experimenting with the proposed
+PostgreSQL feature "synchronous replay".  It is intented to show that the
+semantics provided can be used to good effect by a typical software
+development stack.
+
+The application is a simple RESTful key/value store, which can be accessed
+like so:
+
+ $ curl -X PUT -H "Content-Type: text/plain" -d 'b' localhost:9000/key-value/a
+ {"key":"a","value":"b"}
+ $ curl localhost:9000/key-value/a
+ {"key":"a","value":"b"}
+
+The goal is that GET requests should be sent to randomly chosen read-only
+replica database servers, PUT requests should go to the primary database
+server.  GET requests should see the most recently PUT value for any key at
+all times (no replication lag), and failing replica database servers should
+have a limited impact on the primary server.
+
+Here is some Python pseudo-code that shows a crude example of the sort of
+retry and rerouting behaviour that I think is needed:
+
+ https://github.com/macdice/py-pgsync/blob/master/DemoSyncPool.py

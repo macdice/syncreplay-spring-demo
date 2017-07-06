@@ -28,6 +28,23 @@ public class KeyValueController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    /*
+     * TODO #1: Figure out how to put an annotation here that says this is read
+     * only.  It needs to be AOP 'around' advice, and it needs to call
+     * ReadBalancingDataSource.setRead(true) before and ...(false) after.
+     * Ideally using Spring @Transactional(readOnly=true)
+     *
+     * TODO #2: Figure out how to intercept exceptions.  Then look out for
+     * PostgreSQL error 40P02 "synchronous_replay is not available".  If it is
+     * caught, then blacklist the server that it came from
+     * (ReadBalancingDataSource.backoff(connection.somehowGetPool()),  and
+     * retry the whole request up to N times.  Ideally without hardcoding
+     * 40P02.  There are other errors that it makes sense to retry (but not
+     * blacklist) for too: 40P01 (deadlock), 40001 (serialization failure).
+     * This behaviour should be achievable with 'around' advice, and would
+     * probably be best to configure generally rather than having to add
+     * annotations.
+     */
     @RequestMapping(method=RequestMethod.GET)
     public @ResponseBody KeyValuePair get(@PathVariable String key) {
         // TODO figure out how to generate a 404 if key not found
