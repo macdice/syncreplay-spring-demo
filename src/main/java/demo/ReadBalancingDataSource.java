@@ -71,11 +71,10 @@ public class ReadBalancingDataSource implements DataSource {
                 int wrappedIndex = offsettedIndex >= readPools.length ? offsettedIndex - readPools.length : offsettedIndex;
                 ReadDataSource readPool = readPools[wrappedIndex];
                 long blacklistedUntil = readPool.blacklistedUntil.get();
-                if (blacklistedUntil < 0) {
-                    return readPool.dataSource;
-                }
                 if (blacklistedUntil < System.currentTimeMillis()) {
-                    readPool.blacklistedUntil.set(-1);
+                    if (blacklistedUntil != -1) {
+                        readPool.blacklistedUntil.set(-1);
+                    }
                     return readPool.dataSource;
                 }
             }
