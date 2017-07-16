@@ -3,6 +3,7 @@ package demo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +46,7 @@ public class KeyValueController {
      * probably be best to configure generally rather than having to add
      * annotations.
      */
+    @Transactional(readOnly=true)
     @RequestMapping(method=RequestMethod.GET)
     public @ResponseBody KeyValuePair get(@PathVariable String key) {
         // TODO figure out how to generate a 404 if key not found
@@ -55,6 +57,7 @@ public class KeyValueController {
         return new KeyValuePair(key, value);
     }
 
+    @Transactional()
     @RequestMapping(method=RequestMethod.PUT)
     public @ResponseBody KeyValuePair put(@PathVariable String key, @RequestBody String value) {
         jdbcTemplate.update("INSERT INTO key_value (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", key, value);

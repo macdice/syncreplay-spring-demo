@@ -22,6 +22,7 @@ public class ReadBalancingDataSource implements DataSource {
     private DataSource writePool;
     private ReadDataSource[] readPools;
     private static ThreadLocal<Boolean> readOnly = new ThreadLocal();
+    private static ThreadLocal<ReadDataSource> currentReadPool = new ThreadLocal();
     private Random random = new Random();
 
     class ReadDataSource {
@@ -47,6 +48,10 @@ public class ReadBalancingDataSource implements DataSource {
             } while (!blacklistedUntil.compareAndSet(currentBlacklistedUntil, -1)); // CAS loop
             // if we are here that means we successfully marked datasource as non black listed
             return false;
+        }
+
+        public void blacklist() {
+            blacklistedUntil.set(System.currentTimeMillis() + 5000);
         }
 
         private long blacklistClockTime() {
@@ -92,12 +97,21 @@ public class ReadBalancingDataSource implements DataSource {
                 int wrappedIndex = offsettedIndex >= readPools.length ? offsettedIndex - readPools.length : offsettedIndex;
                 ReadDataSource readPool = readPools[wrappedIndex];
                 if (!readPool.isBlacklisted()) {
+                    currentReadPool.set(readPool);
                     return readPool.dataSource;
                 }
             }
+            currentReadPool.set(null);
             return writePool;
          } else {
+            currentReadPool.set(null);
             return writePool;
+        }
+    }
+
+    public static void blacklistCurrentReadPool() {
+        if (currentReadPool.get() != null) {
+            currentReadPool.get().blacklist();
         }
     }
 
