@@ -44,7 +44,7 @@ public class ReadBalancingDataSource implements DataSource {
                 if (currentBlacklistedUntil < blacklistClockTime()) {
                     return true;
                 }
-            } while (blacklistedUntil.compareAndSet(currentBlacklistedUntil, -1)); // CAS loop
+            } while (!blacklistedUntil.compareAndSet(currentBlacklistedUntil, -1)); // CAS loop
             // if we are here that means we successfully marked datasource as non black listed
             return false;
         }
