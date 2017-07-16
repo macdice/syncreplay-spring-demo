@@ -31,6 +31,20 @@ public class ReadBalancingDataSource implements DataSource {
         }
         DataSource dataSource;
         AtomicLong blacklistedUntil;
+
+        public boolean isBlackListed() {
+            long blacklistedUntilTime = this.blacklistedUntil.get();
+            
+            if (blacklistedUntilTime == -1) {
+                return false;
+            }
+            
+            if (blacklistedUntilTime > System.currentTimeMillis()) {
+                this.blacklistedUntil.set(-1);
+                return true;
+            }
+            return false ;
+        }
     }
 
     public void setWriteUrl(String url) {
@@ -70,11 +84,7 @@ public class ReadBalancingDataSource implements DataSource {
                 int offsettedIndex = i + start;
                 int wrappedIndex = offsettedIndex >= readPools.length ? offsettedIndex - readPools.length : offsettedIndex;
                 ReadDataSource readPool = readPools[wrappedIndex];
-                long blacklistedUntil = readPool.blacklistedUntil.get();
-                if (blacklistedUntil < System.currentTimeMillis()) {
-                    if (blacklistedUntil != -1) {
-                        readPool.blacklistedUntil.set(-1);
-                    }
+                if (!readPool.isBlackListed()) {
                     return readPool.dataSource;
                 }
             }
