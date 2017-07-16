@@ -3,6 +3,8 @@ package demo;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.PrintWriter;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,14 +22,15 @@ public class ReadBalancingDataSource implements DataSource {
     private DataSource writePool;
     private ReadDataSource[] readPools;
     private static ThreadLocal<Boolean> readOnly = new ThreadLocal();
+    private Random random = new Random();
 
     class ReadDataSource {
         public ReadDataSource(DataSource dataSource) {
             this.dataSource = dataSource;
-            this.blacklistedUntil = new ThreadLocal();
+            this.blacklistedUntil = new AtomicLong(-1);
         }
         DataSource dataSource;
-        ThreadLocal<Long> blacklistedUntil;
+        AtomicLong blacklistedUntil;
     }
 
     public void setWriteUrl(String url) {
@@ -61,19 +64,20 @@ public class ReadBalancingDataSource implements DataSource {
     }
 
     private DataSource chooseDataSource() {
-        if (readOnly.get() != null && readOnly.get()) {
-            int start = (int) Math.random() * readPools.length;
-            int i = start;
-            do {
-                if (readPools[i].blacklistedUntil.get() == null) {
-                    return readPools[i].dataSource;
+        if (Boolean.TRUE.equals(readOnly.get())) {
+            int start = random.nextInt(readPools.length);
+            for(int i = 0; i < readPools.length; i++) {
+                int offsettedIndex = i + start;
+                int wrappedIndex = offsettedIndex >= readPools.length ? offsettedIndex - readPools.length : offsettedIndex;
+                ReadDataSource readPool = readPools[wrappedIndex];
+                long blacklistedUntil = readPool.blacklistedUntil.get();
+                if (blacklistedUntil < System.currentTimeMillis()) {
+                    if (blacklistedUntil != -1) {
+                        readPool.blacklistedUntil.set(-1);
+                    }
+                    return readPool.dataSource;
                 }
-                if (readPools[i].blacklistedUntil.get() < System.currentTimeMillis()) {
-                    readPools[i].blacklistedUntil.set(null);
-                    return readPools[i].dataSource;
-                }
-                i = (i + 1) % readPools.length;
-            } while (i != start);
+            }
             return writePool;
          } else {
             return writePool;
