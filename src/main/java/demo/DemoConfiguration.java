@@ -15,6 +15,15 @@ public class DemoConfiguration {
 		SpringApplication.run(DemoConfiguration.class, args);
 	}
 
+    /*
+     * TODO: What magic incantation is needed to get TransactionRetryAdvisor
+     * and TransactionRoutingAdvisor to apply to the methods of all
+     * components?  And to control the ordering, so that we have
+     * TransactionRetryInterceptor, then TransactionRoutingInterceptor, then
+     * Spring's usual transaction interceptor(s) that manage database
+     * connections and transactions.
+     */
+
     @ConfigurationProperties(prefix = "app.datasource")
     @Bean
     public DataSource dataSource() {
