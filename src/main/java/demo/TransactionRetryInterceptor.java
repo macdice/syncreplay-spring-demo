@@ -11,10 +11,12 @@ import java.sql.SQLException;
  * to make the point that this is a generally useful mechanism.
  *
  * This should be configurable, but has hard-coded parameters for now.
- * It may be possible to use the RetryAdvice that comes built-in to Spring for
- * this, to avoid writing any new code?
+ *
+ * This needs to be configured to run *before* TransactionRoutingInterceptor,
+ * so that when we retry after a 40P02 error we'll be able to try again on
+ * another server.
  */
-public class RetryTransactionAdvice implements MethodInterceptor {
+public class TransactionRetryInterceptor implements MethodInterceptor {
     public Object invoke(MethodInvocation i) throws Throwable {
         int retries = 0;
         for (;;) {
