@@ -2,6 +2,7 @@ package demo;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.stereotype.Component;                               
 import java.sql.SQLException;
 
 /*
@@ -19,6 +20,7 @@ import java.sql.SQLException;
 public class TransactionRetryInterceptor implements MethodInterceptor {
     public Object invoke(MethodInvocation i) throws Throwable {
         int retries = 0;
+System.out.println("retry");
         for (;;) {
             try {
                 return i.proceed();

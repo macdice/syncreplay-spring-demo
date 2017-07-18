@@ -20,8 +20,7 @@ import java.sql.SQLException;
  * management, so that the read-only property can be passed to the
  * ReadBalancingDataSource before a connection is obtained.
  */
-@Component
-public class TransactionRoutingInterceptor implements MethodInterceptor {
+public class TransactionRouteInterceptor implements MethodInterceptor {
     public Object invoke(MethodInvocation i) throws Throwable {
         Method method = i.getMethod();
         Transactional transactional = method.getAnnotation(Transactional.class);

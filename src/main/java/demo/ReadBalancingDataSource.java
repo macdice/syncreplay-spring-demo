@@ -98,13 +98,16 @@ public class ReadBalancingDataSource implements DataSource {
                 ReadDataSource readPool = readPools[wrappedIndex];
                 if (!readPool.isBlacklisted()) {
                     currentReadPool.set(readPool);
+System.out.println("using read pool " + wrappedIndex);
                     return readPool.dataSource;
                 }
             }
             currentReadPool.set(null);
+System.out.println("falling back to write pool");
             return writePool;
          } else {
             currentReadPool.set(null);
+System.out.println("using write pool");
             return writePool;
         }
     }

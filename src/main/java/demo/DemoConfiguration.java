@@ -5,10 +5,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
 @EnableTransactionManagement
+@ImportResource("classpath:/aop-config.xml")
 public class DemoConfiguration {
 
 	public static void main(String[] args) {
@@ -23,7 +25,6 @@ public class DemoConfiguration {
      * Spring's usual transaction interceptor(s) that manage database
      * connections and transactions.
      */
-
     @ConfigurationProperties(prefix = "app.datasource")
     @Bean
     public DataSource dataSource() {
