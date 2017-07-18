@@ -11,7 +11,9 @@ import java.sql.SQLException;
  * by the synchronous_replay patch, but also handles a couple of others just
  * to make the point that this is a generally useful mechanism.
  *
- * This should be configurable, but has hard-coded parameters for now.
+ * This should be configurable (or be replaced with a carefully configured
+ * org.springframework.retry.RetryOperations?), but it's easy to understand as
+ * a few lines of code, for demonstration purposes only.
  *
  * This needs to be configured to run *before* TransactionRoutingInterceptor,
  * so that when we retry after a 40P02 error we'll be able to try again on
@@ -20,8 +22,8 @@ import java.sql.SQLException;
 public class TransactionRetryInterceptor implements MethodInterceptor {
     public Object invoke(MethodInvocation i) throws Throwable {
         int retries = 0;
-System.out.println("retry");
         for (;;) {
+System.out.println("retries " + retries);
             try {
                 return i.proceed();
             } catch (SQLException e) {
