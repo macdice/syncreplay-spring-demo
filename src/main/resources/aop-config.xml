@@ -32,10 +32,10 @@
 
   <!-- Declare the route advice using our custom interceptor.  That does two
        things: (1) pass the readOnly flag from @Transactional(readOnly=X)
-       annotations down to ReadBalancingDataSource, and (2) tell
-       ReadBalancingDataSource to blacklist any database server that raises
-       error 40P02.  -->
-  <bean id="routeAdvice" class="demo.TransactionRouteInterceptor"/>
+       annotations down to TransactionRouter, and (2) tell TransactionRouter
+       blacklist any database server that raises error 40P02 for a period
+       of time.  -->
+  <bean id="routeAdvice" class="demo.TransactionRoutingInterceptor"/>
 
   <!-- Find all methods marked @Transactional and attach the above advice. -->
   <aop:config>

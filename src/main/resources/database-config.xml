@@ -1,0 +1,80 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<beans xmlns = "http://www.springframework.org/schema/beans"
+   xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+   xmlns:aop = "http://www.springframework.org/schema/aop"
+   xsi:schemaLocation = "http://www.springframework.org/schema/beans
+   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   http://www.springframework.org/schema/aop
+   http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+  <!-- Configure our transaction router.  Unlike most DataSource
+       implementations, it doesn't know anything about connection pooling:
+       it just routes transactions to other connection pools which must
+       be defined separately and wired up here.  By setting primary to true
+       we tell Spring Boot that this is the default DataSource to use. -->
+  <bean id="dataSource" class="demo.TransactionRouter" primary="true">
+    <property name="routingPolicy" value="RANDOM"/>
+    <property name="blacklistTime" value="5000"/>
+    <property name="writeDataSource" ref="writeDS"/>
+    <property name="readDataSources">
+      <list value-type="javax.sql.DataSource">
+        <ref bean="readDS1"/>
+        <ref bean="readDS2"/>
+        <ref bean="readDS3"/>
+      </list>
+    </property>
+  </bean>
+
+  <!-- A connection pool for the primary database. -->
+  <bean id="writeDS" class="com.zaxxer.hikari.HikariDataSource">
+    <constructor-arg ref="writeDSConfig"/>
+  </bean>
+  <bean id="writeDSConfig" class="com.zaxxer.hikari.HikariConfig">
+    <property name="poolName" value="Write Connection Pool"/>
+    <property name="jdbcUrl" value="jdbc:postgresql://localhost/postgres"/>
+    <property name="connectionInitSql" value="SET synchronous_replay = on"/>
+    <property name="maximumPoolSize" value="6"/>
+    <property name="idleTimeout" value="60"/>
+    <property name="driverClassName" value="org.postgresql.Driver"/>
+  </bean>
+
+  <!-- Connection pool for hot standby #1. -->
+  <bean id="readDS1" class="com.zaxxer.hikari.HikariDataSource">
+    <constructor-arg ref="readDS1Config"/>
+  </bean>
+  <bean id="readDS1Config" class="com.zaxxer.hikari.HikariConfig">
+    <property name="poolName" value="Read Connection Pool 1"/>
+    <property name="jdbcUrl" value="jdbc:postgresql://localhost:5441/postgres"/>
+    <property name="connectionInitSql" value="SET synchronous_replay = on"/>
+    <property name="maximumPoolSize" value="6"/>
+    <property name="idleTimeout" value="60"/>
+    <property name="driverClassName" value="org.postgresql.Driver"/>
+  </bean>
+
+  <!-- Connection pool for hot standby #2. -->
+  <bean id="readDS2" class="com.zaxxer.hikari.HikariDataSource">
+    <constructor-arg ref="readDS2Config"/>
+  </bean>
+  <bean id="readDS2Config" class="com.zaxxer.hikari.HikariConfig">
+    <property name="poolName" value="Read Connection Pool 2"/>
+    <property name="jdbcUrl" value="jdbc:postgresql://localhost:5442/postgres"/>
+    <property name="connectionInitSql" value="SET synchronous_replay = on"/>
+    <property name="maximumPoolSize" value="6"/>
+    <property name="idleTimeout" value="60"/>
+    <property name="driverClassName" value="org.postgresql.Driver"/>
+  </bean>
+
+  <!-- Connection pool for hot standby #3. -->
+  <bean id="readDS3" class="com.zaxxer.hikari.HikariDataSource">
+    <constructor-arg ref="readDS2Config"/>
+  </bean>
+  <bean id="readDS3Config" class="com.zaxxer.hikari.HikariConfig">
+    <property name="poolName" value="Read Connection Pool 3"/>
+    <property name="jdbcUrl" value="jdbc:postgresql://localhost:5443/postgres"/>
+    <property name="connectionInitSql" value="SET synchronous_replay = on"/>
+    <property name="maximumPoolSize" value="6"/>
+    <property name="idleTimeout" value="60"/>
+    <property name="driverClassName" value="org.postgresql.Driver"/>
+  </bean>
+
+</beans>
