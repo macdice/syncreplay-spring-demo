@@ -1,5 +1,5 @@
 This is a test Java/Spring application for experimenting with the proposed
-PostgreSQL feature "synchronous replay".  It is intended to show that the
+PostgreSQL feature "synchronous replay".  It is intended to show that typical
 modern application stacks could make practical use of the semantics provided
 by that feature.
 
