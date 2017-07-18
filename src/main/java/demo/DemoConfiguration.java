@@ -18,12 +18,11 @@ public class DemoConfiguration {
 	}
 
     /*
-     * TODO: What magic incantation is needed to get TransactionRetryAdvisor
-     * and TransactionRoutingAdvisor to apply to the methods of all
-     * components?  And to control the ordering, so that we have
-     * TransactionRetryInterceptor, then TransactionRoutingInterceptor, then
-     * Spring's usual transaction interceptor(s) that manage database
-     * connections and transactions.
+     * We have a custom DataSource that knows about load balancing.  We also
+     * have 'advice' defined in aop-config.xml which reacts to @Transactional
+     * notation and makes sure that our ReadBalancingDataSource knows whether
+     * we're in a read-only transaction, and can deal with retries and
+     * rerouting.
      */
     @ConfigurationProperties(prefix = "app.datasource")
     @Bean
