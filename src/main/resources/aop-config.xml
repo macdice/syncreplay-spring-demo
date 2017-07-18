@@ -30,16 +30,17 @@
     </constructor-arg>
   </bean>
 
-  <!-- Declare the route advice, using our custom interceptor.  This is needed
-       to pass the read-only flag from @Transactional(readOnly=X) annotations
-       down to ReadBalancingDataSource, and to tell ReadBalancingDataSource to
-       blacklist a database server that raises error 40P02.  -->
+  <!-- Declare the route advice using our custom interceptor.  That does two
+       things: (1) pass the readOnly flag from @Transactional(readOnly=X)
+       annotations down to ReadBalancingDataSource, and (2) tell
+       ReadBalancingDataSource to blacklist any database server that raises
+       error 40P02.  -->
   <bean id="routeAdvice" class="demo.TransactionRouteInterceptor"/>
 
   <!-- Find all methods marked @Transactional and attach the above advice. -->
   <aop:config>
     <aop:pointcut id="allTransactionalMethods"
-                  expression="execution(public * demo.KeyValueController.*(..))"/>
+                  expression="@annotation(org.springframework.transaction.annotation.Transactional)"/>
     <aop:advisor pointcut-ref="allTransactionalMethods"
                  advice-ref="retryAdvice"
                  order="100"/>
