@@ -7,22 +7,44 @@
    http://www.springframework.org/schema/aop
    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
 
-  <bean id="transactionRetry" class="demo.TransactionRetryInterceptor"/>
-  <bean id="transactionRoute" class="demo.TransactionRouteInterceptor"/>
+  <!-- Declare the automatic retry advice using Spring Retry.  The policy
+       is to retry up to 5 times whenever ConcurrencyFailureException occurs.
+       That is the exception to which Spring translates all SQL errors in
+       class "40", which includes serialization failures, deadlocks and the
+       new "40P02" error introduced by the synchronous replay patch. -->
+  <bean id="retryAdvice"
+        class="org.springframework.retry.interceptor.RetryOperationsInterceptor">
+    <property name="retryOperations" ref="retryTemplate"/>
+  </bean>
+  <bean id="retryTemplate"
+        class="org.springframework.retry.support.RetryTemplate">
+    <property name="retryPolicy" ref="retryPolicy"/>
+  </bean>
+  <bean id="retryPolicy"
+        class="org.springframework.retry.policy.SimpleRetryPolicy">
+    <constructor-arg index="0" value="5"/>
+    <constructor-arg index="1">
+      <map>
+        <entry key="org.springframework.dao.ConcurrencyFailureException" value="true"/>
+      </map>
+    </constructor-arg>
+  </bean>
 
+  <!-- Declare the route advice, using our custom interceptor.  This is needed
+       to pass the read-only flag from @Transactional(readOnly=X) annotations
+       down to ReadBalancingDataSource, and to tell ReadBalancingDataSource to
+       blacklist a database server that raises error 40P02.  -->
+  <bean id="routeAdvice" class="demo.TransactionRouteInterceptor"/>
+
+  <!-- Find all methods marked @Transactional and attach the above advice. -->
   <aop:config>
-    <!-- Find all methods annotated with @Transactional. -->
     <aop:pointcut id="allTransactionalMethods"
                   expression="execution(public * demo.KeyValueController.*(..))"/>
-
-    <!-- Automatically retry transactions for certain errors. -->
     <aop:advisor pointcut-ref="allTransactionalMethods"
-                 advice-ref="transactionRetry"
+                 advice-ref="retryAdvice"
                  order="100"/>
-
-    <!-- Automatically route transactions to readOnly annotation. -->
     <aop:advisor pointcut-ref="allTransactionalMethods"
-                 advice-ref="transactionRoute"
+                 advice-ref="routeAdvice"
                  order="200"/>
   </aop:config>
 </beans>
