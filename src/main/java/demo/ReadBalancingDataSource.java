@@ -42,7 +42,7 @@ public class ReadBalancingDataSource implements DataSource {
                     return false;
                 }
 
-                if (currentBlacklistedUntil < blacklistClockTime()) {
+                if (currentBlacklistedUntil > blacklistClockTime()) {
                     return true;
                 }
             } while (!blacklistedUntil.compareAndSet(currentBlacklistedUntil, -1)); // CAS loop
