@@ -1,11 +1,12 @@
 package demo;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;               
 import java.lang.reflect.Method;
 import java.sql.SQLException;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;               
 
 /*
  * Advice that manages connection routing, in cooperation with
@@ -27,13 +28,14 @@ public class TransactionRouteInterceptor implements MethodInterceptor {
         ReadBalancingDataSource.setReadOnly(transactional.readOnly());
         try {
             return i.proceed();
-        } catch (SQLException e) {
-            if (e.getSQLState().equals("40P02")) {
-                ReadBalancingDataSource.blacklistCurrentReadPool();
+        } catch (ConcurrencyFailureException e) {
+            if (e.getRootCause() instanceof SQLException) {
+                SQLException s = (SQLException) e.getRootCause();
+                if (s.getSQLState().equals("40P02")) {
+                    ReadBalancingDataSource.blacklistCurrentReadPool();
+                }
             }
             throw e;
-        } finally {
-            ReadBalancingDataSource.setReadOnly(false);
         }
     }
 }

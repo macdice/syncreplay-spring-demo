@@ -1,44 +1,38 @@
 package demo;
 
+import java.sql.SQLException;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.stereotype.Component;                               
-import java.sql.SQLException;
 
 /*
  * Advice to retry a method invocation if certain error codes are raised by
  * PostgreSQL.  Of main interest for this demo is the new error 40P02 raised
- * by the synchronous_replay patch, but also handles a couple of others just
- * to make the point that this is a generally useful mechanism.
+ * by the synchronous_replay patch, but also handles all 40* class errors
+ * (reported by Spring as ConcurrencyFailureException), since this in in
+ * theory also the right thing to do for serialiazation failures and
+ * deadlocks.
  *
- * This should be configurable (or be replaced with a carefully configured
- * org.springframework.retry.RetryOperations?), but it's easy to understand as
- * a few lines of code, for demonstration purposes only.
+ * This should be configurable (or be replaced with Spring's RetryOperations),
+ * but it's easy to understand as a few lines of code, for demonstration
+ * purposes only.
  *
- * This needs to be configured to run *before* TransactionRoutingInterceptor,
+ * This needs to be configured to run *before* TransactionRouteInterceptor,
  * so that when we retry after a 40P02 error we'll be able to try again on
  * another server.
  */
 public class TransactionRetryInterceptor implements MethodInterceptor {
     public Object invoke(MethodInvocation i) throws Throwable {
-        int retries = 0;
-        for (;;) {
-System.out.println("retries " + retries);
+        for (int retries = 0;; ++retries) {
             try {
                 return i.proceed();
-            } catch (SQLException e) {
+            } catch (ConcurrencyFailureException e) {
                 if (retries == 3) {
-                   throw e; // too many retries
+                    throw e;
+                } else {
+                    continue;
                 }
-
-                if (e.getSQLState().equals("40001") || /* serialization fail */
-                    e.getSQLState().equals("40P01") || /* deadlock */
-                    e.getSQLState().equals("40P02")) { /* sync replay fail */
-                    System.out.println("retrying!");
-                    ++retries;
-                    continue; // retry
-                }
-                throw e; // not an error we know how to handle
             }
         }
     }
