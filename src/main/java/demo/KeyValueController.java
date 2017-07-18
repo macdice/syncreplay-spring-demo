@@ -15,9 +15,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * A simple RESTful key/value store.
  *
  * This is intended as a demonstration of load balancing with PostgreSQL using
- * the proposed synchronous_replay feature.
+ * the proposed synchronous_replay feature.  Nothing in this code is specific
+ * to the demo: @Transactional and readOnly are standard Spring annotations
+ * that are already used for Spring's declarative transaction support.
  *
- * Examples of usage:
+ * The special sauce that enables correct handling of retries and routing is
+ * in the custom DataSource and the custom 'advice' added to all
+ * @Transactional methods, for which see DemoConfiguration.java.
+ *
+ * Examples of usage, to hit this service from the command line:
  *
  * curl http://localhost:9000/key-value/banana
  * curl -X PUT -H "Content-Type: text/plain" -d 'yellow' localhost:9000/key-value/banana
@@ -29,27 +35,9 @@ public class KeyValueController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    /*
-     * TODO #1: Figure out how to put an annotation here that says this is read
-     * only.  It needs to be AOP 'around' advice, and it needs to call
-     * ReadBalancingDataSource.setRead(true) before and ...(false) after.
-     * Ideally using Spring @Transactional(readOnly=true)
-     *
-     * TODO #2: Figure out how to intercept exceptions.  Then look out for
-     * PostgreSQL error 40P02 "synchronous_replay is not available".  If it is
-     * caught, then blacklist the server that it came from
-     * (ReadBalancingDataSource.backoff(connection.somehowGetPool()),  and
-     * retry the whole request up to N times.  Ideally without hardcoding
-     * 40P02.  There are other errors that it makes sense to retry (but not
-     * blacklist) for too: 40P01 (deadlock), 40001 (serialization failure).
-     * This behaviour should be achievable with 'around' advice, and would
-     * probably be best to configure generally rather than having to add
-     * annotations.
-     */
     @Transactional(readOnly=true)
     @RequestMapping(method=RequestMethod.GET)
     public @ResponseBody KeyValuePair get(@PathVariable String key) {
-        // TODO figure out how to generate a 404 if key not found
         String value =
             jdbcTemplate.queryForObject("SELECT value FROM key_value WHERE key = ?",
                                         new Object[] { key }, String.class);
@@ -57,7 +45,7 @@ public class KeyValueController {
         return new KeyValuePair(key, value);
     }
 
-    @Transactional()
+    @Transactional
     @RequestMapping(method=RequestMethod.PUT)
     public @ResponseBody KeyValuePair put(@PathVariable String key, @RequestBody String value) {
         jdbcTemplate.update("INSERT INTO key_value (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", key, value);
