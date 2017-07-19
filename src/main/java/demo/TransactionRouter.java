@@ -14,13 +14,10 @@ import javax.sql.DataSource;
  * underlying connection pools based on a routing policy and per-transaction
  * read-only hints.
  *
- * Client code should call TransactionRouter.readOnly(...) to indicate whether
- * the next connection should be from a read-only connection pool.  The
- * intended way to do that is by configuring TransactionRoutingInterceptor
- * to read Spring @Transactional(readOnly=X) annotations.  Client code should
- * call TransactionRouter.blacklist() to indicate that the most recently
- * accessed server should not be used again for a backoff period.  Again, that
- * can be done automatically by TransactionRoutingInterceptor.
+ * Designed to be used along with TransactionRoutingInterceptor, which passes
+ * down the readOnly flag from Spring @Transactional annotations and detects
+ * synchronous_replay 40P02 errors so that servers can be temporary
+ * blacklisted.
  */
 public class TransactionRouter implements DataSource {
     private DataSource writeDataSource;
