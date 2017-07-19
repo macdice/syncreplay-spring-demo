@@ -66,7 +66,7 @@
 
   <!-- Connection pool for hot standby #3. -->
   <bean id="readDS3" class="com.zaxxer.hikari.HikariDataSource">
-    <constructor-arg ref="readDS2Config"/>
+    <constructor-arg ref="readDS3Config"/>
   </bean>
   <bean id="readDS3Config" class="com.zaxxer.hikari.HikariConfig">
     <property name="poolName" value="Read Connection Pool 3"/>
