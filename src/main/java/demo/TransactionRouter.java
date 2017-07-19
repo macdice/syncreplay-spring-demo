@@ -29,8 +29,8 @@ public class TransactionRouter implements DataSource {
     private RoutingPolicy routingPolicy = RoutingPolicy.RANDOM;
     private long blacklistTimeMillis = 5000;
     private AtomicLong roundRobinNext = new AtomicLong(0);
-    private static ThreadLocal<Boolean> readOnly = new ThreadLocal();
-    private static ThreadLocal<ReadSlot> currentReadSlot = new ThreadLocal();
+    private ThreadLocal<Boolean> readOnly = new ThreadLocal();
+    private ThreadLocal<ReadSlot> currentReadSlot = new ThreadLocal();
 
     public enum RoutingPolicy {
         /* Choose read-only pools randomly. */
@@ -81,7 +81,7 @@ public class TransactionRouter implements DataSource {
     };
 
     public void setRoutingPolicy(RoutingPolicy routingPolicy) {
-	    this.routingPolicy = routingPolicy;
+        this.routingPolicy = routingPolicy;
     }
 
     public void setWriteDataSource(DataSource writeDataSource) {
@@ -107,7 +107,7 @@ public class TransactionRouter implements DataSource {
      * Set the read-only flag for the current thread.  This should be called
      * by TransactionRoutingInterceptor based on @Transactional annotations.
      */
-    public static void readOnly(boolean value) {
+    public void readOnly(boolean value) {
         readOnly.set(value);
     }
 
@@ -116,7 +116,7 @@ public class TransactionRouter implements DataSource {
      * thread.  This should be called by TransactionRoutingInterceptor when
      * certain errors are intercepted.
      */
-    public static void blacklist() {
+    public void blacklist() {
         if (currentReadSlot.get() != null) {
             currentReadSlot.get().blacklist();
         }

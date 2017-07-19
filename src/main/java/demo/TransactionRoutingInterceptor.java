@@ -16,17 +16,23 @@ import org.springframework.transaction.annotation.Transactional;
  * transactions currently.
  */
 public class TransactionRoutingInterceptor implements MethodInterceptor {
+    TransactionRouter transactionRouter;
+
+    public void setTransactionRouter(TransactionRouter transactionRouter) {
+        this.transactionRouter = transactionRouter;
+    }
+
     public Object invoke(MethodInvocation i) throws Throwable {
         Method method = i.getMethod();
         Transactional transactional = method.getAnnotation(Transactional.class);
-        TransactionRouter.readOnly(transactional != null && transactional.readOnly());
+        transactionRouter.readOnly(transactional != null && transactional.readOnly());
         try {
             return i.proceed();
         } catch (ConcurrencyFailureException e) {
             if (e.getRootCause() instanceof SQLException) {
                 SQLException s = (SQLException) e.getRootCause();
                 if (s.getSQLState().equals("40P02")) {
-                    TransactionRouter.blacklist();
+                    transactionRouter.blacklist();
                 }
             }
             throw e;
