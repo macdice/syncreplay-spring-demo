@@ -14,12 +14,6 @@ import javax.sql.DataSource;
  * underlying connection pools based on a routing policy and per-transaction
  * read-only hints.
  *
- * Supported routing policies are:
- *
- * RANDOM: read-only queries are randomly distributed
- * ROUND_ROBIN: read-only queries are rotated through all read-only servers
- * THREAD_ROUND_ROBIN: thread-local round-robin
- *
  * Client code should call TransactionRouter.readOnly(...) to indicate whether
  * the next connection should be from a read-only connection pool.  The
  * intended way to do that is by configuring TransactionRoutingInterceptor
@@ -32,15 +26,20 @@ public class TransactionRouter implements DataSource {
     private DataSource writeDataSource;
     private ReadSlot[] readSlots;
     private Random random = new Random();
-    private int routingPolicy = RANDOM;
+    private RoutingPolicy routingPolicy = RoutingPolicy.RANDOM;
     private long blacklistTime = 5000;
     private AtomicLong roundRobinNext = new AtomicLong(0);
     private static ThreadLocal<Boolean> readOnly = new ThreadLocal();
     private static ThreadLocal<ReadSlot> currentReadSlot = new ThreadLocal();
 
-    public static int THREAD_ROUND_ROBIN = 1;
-    public static int ROUND_ROBIN = 2;
-    public static int RANDOM = 3;
+    public enum RoutingPolicy {
+        /* Choose read-only pools randomly. */
+        RANDOM,
+        /* Rotate through all available read-only pools. */
+        ROUND_ROBIN,
+        /* Rotate through all available read-only pools within each thread. */
+        THREAD_ROUND_ROBIN
+    };
 
     class ReadSlot {
         private TransactionRouter owner;
@@ -82,16 +81,8 @@ public class TransactionRouter implements DataSource {
         }
     };
 
-    public void setRoutingPolicy(String routingPolicy) {
-        if ("RANDOM".equals(routingPolicy)) {
-            this.routingPolicy = RANDOM;
-        } else if ("THREAD_ROUND_ROBIN".equals(routingPolicy)) {
-            this.routingPolicy = THREAD_ROUND_ROBIN;
-        } else if ("ROUND_ROBIN".equals(routingPolicy)) {
-            this.routingPolicy = ROUND_ROBIN;
-        } else {
-            throw new RuntimeException("unknown routing policy");
-        }
+    public void setRoutingPolicy(RoutingPolicy routingPolicy) {
+	    this.routingPolicy = routingPolicy;
     }
 
     public void setWriteDataSource(DataSource writeDataSource) {
@@ -139,9 +130,9 @@ public class TransactionRouter implements DataSource {
         if (Boolean.TRUE.equals(readOnly.get()) && readSlots.length > 0) {
             int start;
 
-            if (routingPolicy == THREAD_ROUND_ROBIN && currentReadSlot.get() != null) {
+            if (routingPolicy == RoutingPolicy.THREAD_ROUND_ROBIN && currentReadSlot.get() != null) {
                 start = (currentReadSlot.get().getIndex() + 1) % readSlots.length;
-            } else if (routingPolicy == ROUND_ROBIN) {
+            } else if (routingPolicy == RoutingPolicy.ROUND_ROBIN) {
                 int next;
                 do {
                     start = (int) roundRobinNext.get();
