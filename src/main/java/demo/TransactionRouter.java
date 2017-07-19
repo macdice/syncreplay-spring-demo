@@ -155,13 +155,11 @@ public class TransactionRouter implements DataSource {
                 ReadSlot readSlot = readSlots[(start + i) % readSlots.length];
                 if (!readSlot.isBlacklisted()) {
                     currentReadSlot.set(readSlot);
-System.out.println("using read pool " + readSlot.index);
                     return readSlot.dataSource;
                 }
             }
         }
         currentReadSlot.set(null);
-System.out.println("using write pool");
         return writeDataSource;
     }
 
