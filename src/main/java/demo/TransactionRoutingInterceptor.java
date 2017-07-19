@@ -18,13 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class TransactionRoutingInterceptor implements MethodInterceptor {
     TransactionRouter transactionRouter;
 
-    public void setTransactionRouter(TransactionRouter transactionRouter) {
+    public TransactionRoutingInterceptor(TransactionRouter transactionRouter) {
         this.transactionRouter = transactionRouter;
     }
 
     public Object invoke(MethodInvocation i) throws Throwable {
-        if (transactionRouter == null)
-            throw RuntimeException("not wired to a TransactionRouter");
         Method method = i.getMethod();
         Transactional transactional = method.getAnnotation(Transactional.class);
         transactionRouter.readOnly(transactional != null && transactional.readOnly());

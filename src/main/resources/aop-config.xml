@@ -36,7 +36,7 @@
        TransactionRouter blacklist any database server that raises error 40P02
        for a period of time.  -->
   <bean id="routeAdvice" class="demo.TransactionRoutingInterceptor">
-    <property name="transactionRouter" ref="dataSource"/>
+    <constructor-arg ref="dataSource"/>
   </bean>
 
   <!-- Find all methods marked @Transactional and attach the above advice. -->
