@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ImportResource({"classpath:/aop-config.xml",
                  "classpath:/database-config.xml"})
 public class DemoConfiguration {
-	public static void main(String[] args) {
-		SpringApplication.run(DemoConfiguration.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(DemoConfiguration.class, args);
+    }
 }
