@@ -19,7 +19,7 @@ public class TransactionRoutingInterceptor implements MethodInterceptor {
     public Object invoke(MethodInvocation i) throws Throwable {
         Method method = i.getMethod();
         Transactional transactional = method.getAnnotation(Transactional.class);
-        TransactionRouter.readOnly(transactional.readOnly());
+        TransactionRouter.readOnly(transactional != null && transactional.readOnly());
         try {
             return i.proceed();
         } catch (ConcurrencyFailureException e) {
