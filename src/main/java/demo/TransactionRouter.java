@@ -27,7 +27,7 @@ public class TransactionRouter implements DataSource {
     private ReadSlot[] readSlots;
     private Random random = new Random();
     private RoutingPolicy routingPolicy = RoutingPolicy.RANDOM;
-    private long blacklistTime = 5000;
+    private long blacklistTimeMillis = 5000;
     private AtomicLong roundRobinNext = new AtomicLong(0);
     private static ThreadLocal<Boolean> readOnly = new ThreadLocal();
     private static ThreadLocal<ReadSlot> currentReadSlot = new ThreadLocal();
@@ -46,7 +46,6 @@ public class TransactionRouter implements DataSource {
         private int index;
         private DataSource dataSource;
         private AtomicLong blacklistedUntil;
-        private long blacklistTime;
 
         public ReadSlot(TransactionRouter owner, int index, DataSource dataSource) {
             this.owner = owner;
@@ -69,7 +68,7 @@ public class TransactionRouter implements DataSource {
         }
 
         public void blacklist() {
-            blacklistedUntil.set(System.currentTimeMillis() + owner.getBlacklistTime());
+            blacklistedUntil.set(System.currentTimeMillis() + owner.getBlacklistTimeMillis());
         }
 
         public int getIndex() {
@@ -96,12 +95,12 @@ public class TransactionRouter implements DataSource {
         }
     }
 
-    public void setBlacklistTime(long blacklistTime) {
-        this.blacklistTime = blacklistTime;
+    public void setBlacklistTimeMillis(long blacklistTimeMillis) {
+        this.blacklistTimeMillis = blacklistTimeMillis;
     }
 
-    public long getBlacklistTime() {
-        return blacklistTime;
+    public long getBlacklistTimeMillis() {
+        return blacklistTimeMillis;
     }
 
     /**

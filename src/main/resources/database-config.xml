@@ -14,7 +14,7 @@
        we tell Spring Boot that this is the default DataSource to use. -->
   <bean id="dataSource" class="demo.TransactionRouter" primary="true">
     <property name="routingPolicy" value="RANDOM"/>
-    <property name="blacklistTime" value="5000"/>
+    <property name="blacklistTimeMillis" value="5000"/>
     <property name="writeDataSource" ref="writeDS"/>
     <property name="readDataSources">
       <list value-type="javax.sql.DataSource">
