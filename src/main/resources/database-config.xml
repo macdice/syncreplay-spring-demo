@@ -14,7 +14,7 @@
        we tell Spring Boot that this is the default DataSource to use. -->
   <bean id="dataSource" class="demo.TransactionRouter" primary="true">
     <property name="routingPolicy" value="RANDOM"/>
-    <property name="blacklistTimeMillis" value="5000"/>
+    <property name="blacklistTimeMillis" value="${demo.readpools.blacklistTimeMillis}"/>
     <property name="writeDataSource" ref="writeDS"/>
     <property name="readDataSources">
       <list value-type="javax.sql.DataSource">
@@ -33,8 +33,8 @@
     <property name="poolName" value="Write Connection Pool"/>
     <property name="jdbcUrl" value="jdbc:postgresql://localhost/postgres"/>
     <property name="connectionInitSql" value="SET synchronous_replay = on"/>
-    <property name="maximumPoolSize" value="6"/>
-    <property name="idleTimeout" value="60"/>
+    <property name="maximumPoolSize" value="${demo.writepool.maximumPoolSize}"/>
+    <property name="idleTimeout" value="${demo.writepool.idleTimeout}"/>
     <property name="driverClassName" value="org.postgresql.Driver"/>
   </bean>
 
@@ -46,8 +46,8 @@
     <property name="poolName" value="Read Connection Pool 1"/>
     <property name="jdbcUrl" value="jdbc:postgresql://localhost:5441/postgres"/>
     <property name="connectionInitSql" value="SET synchronous_replay = on"/>
-    <property name="maximumPoolSize" value="6"/>
-    <property name="idleTimeout" value="60"/>
+    <property name="maximumPoolSize" value="${demo.readpools.maximumPoolSize}"/>
+    <property name="idleTimeout" value="${demo.readpools.idleTimeout}"/>
     <property name="driverClassName" value="org.postgresql.Driver"/>
   </bean>
 
@@ -59,8 +59,8 @@
     <property name="poolName" value="Read Connection Pool 2"/>
     <property name="jdbcUrl" value="jdbc:postgresql://localhost:5442/postgres"/>
     <property name="connectionInitSql" value="SET synchronous_replay = on"/>
-    <property name="maximumPoolSize" value="6"/>
-    <property name="idleTimeout" value="60"/>
+    <property name="maximumPoolSize" value="${demo.readpools.maximumPoolSize}"/>
+    <property name="idleTimeout" value="${demo.readpools.idleTimeout}"/>
     <property name="driverClassName" value="org.postgresql.Driver"/>
   </bean>
 
@@ -72,8 +72,8 @@
     <property name="poolName" value="Read Connection Pool 3"/>
     <property name="jdbcUrl" value="jdbc:postgresql://localhost:5443/postgres"/>
     <property name="connectionInitSql" value="SET synchronous_replay = on"/>
-    <property name="maximumPoolSize" value="6"/>
-    <property name="idleTimeout" value="60"/>
+    <property name="maximumPoolSize" value="${demo.readpools.maximumPoolSize}"/>
+    <property name="idleTimeout" value="${demo.readpools.idleTimeout}"/>
     <property name="driverClassName" value="org.postgresql.Driver"/>
   </bean>
 

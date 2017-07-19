@@ -22,8 +22,8 @@
   </bean>
   <bean id="retryPolicy"
         class="org.springframework.retry.policy.SimpleRetryPolicy">
-    <constructor-arg index="0" value="5"/>
-    <constructor-arg index="1">
+    <constructor-arg value="${demo.retryPolicy.maxAttempts}"/>
+    <constructor-arg>
       <map>
         <entry key="org.springframework.dao.ConcurrencyFailureException" value="true"/>
       </map>
