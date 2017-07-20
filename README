@@ -13,19 +13,25 @@ like so:
 
 GET requests are sent to randomly chosen read-only replica database servers
 and PUT requests should go to the primary database server.  GET requests
-should see the most recently PUT value for any key at all times (no
-replication lag), and failing replica database servers should have a limited
-impact on the primary server and application.
+always see the most recently PUT value for any key (no replication lag), and
+failing replica database servers should have a limited impact on the primary
+server and application.
 
 The application code is in KeyValueController.java and contains no special
-handling for retrying or rerouting, except for the standard Spring annotations
-for declarative transactions such as @Transactional(readOnly=true).  These
-annotations are already be used by other libraries such as MySQL Connector/J
-for a similar purpose.  The code to add routing and retries consists of a
-custom DataSource implementation that in turn manages a set of real DataSource
-objects (the pools of connections to each database server), and some AOP
-advice that can be defined globally for your application to enable retries and
-and readonlyrouting.
+handling for retrying or rerouting.  Then two alternative configurations are
+shown that allow for distrbuting query processing:
+
+1.  DeclarativeTransactionInterceptor relies on application-provided
+    annotations using Spring's @Transactional(readOnly=X) to know whether
+    each transactional method needs a read-write or read-only connection.
+
+2.  AdaptiveTransactionInterceptor learns as it goes, routing all
+    transactional methods to read-only servers until it learns that they need
+    a read-write connection.
+
+The choice of those two strategies is made in aop-config.xml.  Finally, the
+configuration of the DataSource that makes transaction routing possible is
+in database-config.xml.
 
 This requires a set of PostgreSQL servers running the latest master code
 patched with this:

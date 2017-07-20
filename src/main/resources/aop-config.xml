@@ -7,11 +7,7 @@
    http://www.springframework.org/schema/aop
    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
 
-  <!-- Declare the automatic retry advice using Spring Retry.  The policy
-       is to retry up to 5 times whenever ConcurrencyFailureException occurs.
-       That is the exception to which Spring translates all SQL errors in
-       class "40", which includes serialization failures, deadlocks and the
-       new "40P02" error introduced by the synchronous replay patch. -->
+  <!-- Configure automatic retry advice using Spring Retry. -->
   <bean id="retryAdvice"
         class="org.springframework.retry.interceptor.RetryOperationsInterceptor">
     <property name="retryOperations" ref="retryTemplate"/>
@@ -26,16 +22,24 @@
     <constructor-arg>
       <map>
         <entry key="org.springframework.dao.ConcurrencyFailureException" value="true"/>
+        <entry key="org.springframework.dao.TransientDataAccessResourceException" value="true"/>
       </map>
     </constructor-arg>
   </bean>
 
-  <!-- Declare the route advice using our custom interceptor.  That does two
-       things: (1) pass the readOnly flag from @Transactional(readOnly=X)
-       annotations down to the TransactionRouter, and (2) tell the
-       TransactionRouter blacklist any database server that raises error 40P02
-       for a period of time.  -->
-  <bean id="routeAdvice" class="demo.TransactionRoutingInterceptor">
+  <!-- Configure declarative routing advice.
+       Uncomment this to use @Transaction(readOnly=X) annotations to drive
+       transaction routing. -->
+  <!--
+  <bean id="routingAdvice" class="demo.DeclarativeRoutingInterceptor">
+    <constructor-arg ref="dataSource"/>
+  </bean>
+  -->
+
+  <!-- Adaptive routing advice.
+       Uncomment this to run all all transactional methods on read-only
+       servers but learn from errors which ones need writable servers. -->
+  <bean id="routingAdvice" class="demo.AdaptiveRoutingInterceptor">
     <constructor-arg ref="dataSource"/>
   </bean>
 
@@ -47,7 +51,7 @@
                  advice-ref="retryAdvice"
                  order="100"/>
     <aop:advisor pointcut-ref="allTransactionalMethods"
-                 advice-ref="routeAdvice"
+                 advice-ref="routingAdvice"
                  order="200"/>
   </aop:config>
 </beans>

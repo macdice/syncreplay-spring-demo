@@ -10,15 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 /*
  * Advice that tells TransactionRouter whether this thread's current
- * transaction is read-only, for routing purposes.  It also tells
- * TransactionRouter to blacklist the most recently accessed server for a
- * period of time if it is known to be unable to serve synchronous_replay
- * transactions currently.
+ * transaction is declared as @Transactional(readOnly=true), for routing
+ * purposes.  It also tells TransactionRouter to blacklist the most recently
+ * accessed server for a period of time if it is known to be unable to serve
+ * synchronous_replay transactions currently.
  */
-public class TransactionRoutingInterceptor implements MethodInterceptor {
+public class DeclarativeRoutingInterceptor implements MethodInterceptor {
     TransactionRouter transactionRouter;
 
-    public TransactionRoutingInterceptor(TransactionRouter transactionRouter) {
+    public DeclarativeRoutingInterceptor(TransactionRouter transactionRouter) {
         this.transactionRouter = transactionRouter;
     }
 

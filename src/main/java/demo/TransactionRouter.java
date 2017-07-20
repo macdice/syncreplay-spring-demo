@@ -14,10 +14,9 @@ import javax.sql.DataSource;
  * underlying connection pools based on a routing policy and per-transaction
  * read-only hints.
  *
- * Designed to be used along with TransactionRoutingInterceptor, which passes
- * down the readOnly flag from Spring @Transactional annotations and detects
- * synchronous_replay 40P02 errors so that servers can be temporary
- * blacklisted.
+ * Designed to be used along with either AdaptiveRoutingInterceptor or
+ * DeclarativeRoutingInterceptor, or some other mechanism that can pass on
+ * readOnly(x) and blacklist() hints.
  */
 public class TransactionRouter implements DataSource {
     private DataSource writeDataSource;
@@ -101,8 +100,11 @@ public class TransactionRouter implements DataSource {
     }
 
     /**
-     * Set the read-only flag for the current thread.  This should be called
-     * by TransactionRoutingInterceptor based on @Transactional annotations.
+     * Set the read-only flag for the current thread.
+     *
+     * This should ideally be called automatically by
+     * DeclarativeRoutingInterceptor, AdaptiveRoutingInterceptor or similar
+     * AOP mechanisms.
      */
     public void readOnly(boolean value) {
         readOnly.set(value);
@@ -110,8 +112,11 @@ public class TransactionRouter implements DataSource {
 
     /**
      * Blacklist the read DataSource most recently obtained by the current
-     * thread.  This should be called by TransactionRoutingInterceptor when
-     * certain errors are intercepted.
+     * thread.
+     *
+     * This should ideally be called automatically by
+     * DeclarativeRoutingInterceptor, AdaptiveRoutingInterceptor or similar
+     * AOP mechanisms.
      */
     public void blacklist() {
         if (currentReadSlot.get() != null) {
