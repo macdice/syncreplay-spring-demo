@@ -18,16 +18,19 @@ failing replica database servers should have a limited impact on the primary
 server and application.
 
 The application code is in KeyValueController.java and contains no special
-handling for retrying or rerouting.  Then two alternative configurations are
-shown that allow for distrbuting query processing:
+handling for retrying or rerouting and could be used against a single database
+server.
 
-1.  DeclarativeTransactionInterceptor relies on application-provided
+Then two alternative configurations are shown that allow for distrbuting query
+processing:
+
+1.  DeclarativeRoutingInterceptor relies on application-provided
     annotations using Spring's @Transactional(readOnly=X) to know whether
     each transactional method needs a read-write or read-only connection.
 
-2.  AdaptiveTransactionInterceptor learns as it goes, routing all
+2.  AdaptiveRoutingInterceptor learns as it goes, routing all
     transactional methods to read-only servers until it learns that they need
-    a read-write connection.
+    a read-write connection.  This approach doesn't need any annotations.
 
 The choice of those two strategies is made in aop-config.xml.  Finally, the
 configuration of the DataSource that makes transaction routing possible is
