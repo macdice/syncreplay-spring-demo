@@ -21,8 +21,8 @@ The application code is in KeyValueController.java and contains no special
 handling for retrying or rerouting and could be used against a single database
 server.
 
-Then two alternative configurations are shown that allow for distrbuting query
-processing:
+Then two alternative configurations are shown that allow for distributing
+transactions:
 
 1.  DeclarativeRoutingInterceptor relies on application-provided
     annotations using Spring's @Transactional(readOnly=X) to know whether
@@ -47,3 +47,8 @@ servers.  A table must be created first:
  CREATE TABLE key_value (key text PRIMARY KEY, value text NOT NULL);
 
 This is work in progress, pull requests welcome!
+
+- Thomas Munro
+
+Many thanks to John Hurst and Arnaud Roger for pointers, review and
+improvements.
