@@ -28,17 +28,18 @@
   </bean>
 
   <!-- Configure declarative routing advice.
-       Uncomment this to use @Transaction(readOnly=X) annotations to drive
-       transaction routing. -->
+       Uncomment this to use Spring @Transactional(readOnly=X) annotations to
+       control transaction routing. -->
   <!--
   <bean id="routingAdvice" class="demo.DeclarativeRoutingInterceptor">
     <constructor-arg ref="dataSource"/>
   </bean>
   -->
 
-  <!-- Adaptive routing advice.
+  <!-- Configure adaptive routing advice.
        Uncomment this to run all all transactional methods on read-only
-       servers but learn from errors which ones need writable servers. -->
+       servers initially and then learn from errors which ones need writable
+       servers. -->
   <bean id="routingAdvice" class="demo.AdaptiveRoutingInterceptor">
     <constructor-arg ref="dataSource"/>
   </bean>
