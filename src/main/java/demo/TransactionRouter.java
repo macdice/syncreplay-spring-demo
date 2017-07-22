@@ -17,6 +17,12 @@ import javax.sql.DataSource;
  * Designed to be used along with either AdaptiveRoutingInterceptor or
  * DeclarativeRoutingInterceptor, or some other mechanism that can pass on
  * readOnly(x) and blacklist() hints.
+ *
+ * (A production version of this class should probably also deal with graceful
+ * handling of connection failure for a database server that is down, and
+ * perhaps also figure out which server is the primary/write server without
+ * having to be told, but those are outside the scope of this
+ * proof-of-concept for now.)
  */
 public class TransactionRouter implements DataSource {
     private DataSource writeDataSource;
